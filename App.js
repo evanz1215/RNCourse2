@@ -1,5 +1,5 @@
 import { StatusBar } from "expo-status-bar";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ImageBackground, StyleSheet, SafeAreaView } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import StartGameScreen from "./screens/StartGameScreen";
@@ -7,11 +7,11 @@ import GameScreen from "./screens/GameScreen";
 import GameOverScreen from "./screens/GameOverScreen";
 import Colors from "./constants/colors";
 import { useFonts } from "expo-font";
-import AppLoading from "expo-app-loading";
-// import * as SplashScreen from "expo-splash-screen";
+// import AppLoading from "expo-app-loading";
+import * as SplashScreen from "expo-splash-screen";
 
 export default function App() {
-  const [userNumber, setUserNumber] = useState(0);
+  const [userNumber, setUserNumber] = useState(null);
   const [gameISOver, setGameIsOver] = useState(true);
   const [guessRounds, setGuessRounds] = useState(0);
 
@@ -20,15 +20,28 @@ export default function App() {
     "open-sans-bold": require("./assets/fonts/OpenSans-Bold.ttf"),
   });
 
-  // if (!fontsLoaded) {
-  //   SplashScreen.preventAutoHideAsync();
-  // } else {
-  //   SplashScreen.hideAsync();
-  // }
-  if (!fontsLoaded) {
-    return <AppLoading />;
-  }
+  useEffect(() => {
+    async function prepare() {
+      try {
+        // 保持啟動畫面
+        await SplashScreen.preventAutoHideAsync();
+      } catch (e) {
+        console.warn(e);
+      }
+      if (fontsLoaded) {
+        await SplashScreen.hideAsync();
+      }
+    }
 
+    prepare();
+  }, [fontsLoaded]);
+  // if (!fontsLoaded) {
+  //   return <AppLoading />;
+  // }
+
+  if (!fontsLoaded) {
+    return null; // 或者加載中的提示界面
+  }
   function pickedNumberHandler(pickedNumber) {
     setUserNumber(pickedNumber);
     setGameIsOver(false);
@@ -64,19 +77,22 @@ export default function App() {
   }
 
   return (
-    <LinearGradient
-      colors={[Colors.primary700, Colors.accent500]}
-      style={styles.rootScreen}
-    >
-      <ImageBackground
-        source={require("./assets/images/background.png")}
-        resizeMode="cover"
+    <>
+      <StatusBar style="light" />
+      <LinearGradient
+        colors={[Colors.primary700, Colors.accent500]}
         style={styles.rootScreen}
-        imageStyle={styles.backgroundImage}
       >
-        <SafeAreaView style={styles.rootScreen}>{screen}</SafeAreaView>
-      </ImageBackground>
-    </LinearGradient>
+        <ImageBackground
+          source={require("./assets/images/background.png")}
+          resizeMode="cover"
+          style={styles.rootScreen}
+          imageStyle={styles.backgroundImage}
+        >
+          <SafeAreaView style={styles.rootScreen}>{screen}</SafeAreaView>
+        </ImageBackground>
+      </LinearGradient>
+    </>
   );
 }
 
